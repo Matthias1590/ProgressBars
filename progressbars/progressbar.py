@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import os
 import time
-from datetime import datetime, timezone
 from typing import *
 
+from termcolor import colored
 
-def displayTime(time: float) -> str:
-    time = datetime.fromtimestamp(time, timezone.utc)
-    return f"{str(time.hour).zfill(2)}:{str(time.minute).zfill(2)}:{str(time.second).zfill(2)}"
+from progressbars import widgets
+
 
 class ProgressIterator:
     def __init__(self, progressBar: ProgressBar) -> None:
@@ -17,32 +16,48 @@ class ProgressIterator:
         self.__iterableLength = len(self.__progressBar.iterable)
         self.__updateInterval = progressBar.updateInterval
         self.__start = time.time()
+        self.__lastIteration = self.__start
+        self.lastIterationSpeeds = []
+        self.color = self.__progressBar.color
+
+        for widget in progressBar.widgets:
+            widget.progressBar = self
     
+    def __iter__(self) -> Any:
+        return self
+
     def __next__(self) -> Any:
         runCycle = (self.__index % self.__updateInterval == 0 or self.__index == self.__iterableLength - 1) and self.__iterableLength > 0
 
-        if self.__index > 0 and runCycle:
+        if self.__index > 0 and runCycle and self.__index != self.__iterableLength:
             print(end="\033[1A")
 
         if runCycle:
             terminalWidth = os.get_terminal_size().columns
 
-            percentage = str(int((self.__index + 1) / self.__iterableLength * 100)) + "%"
-            ratio = f"{self.__index + 1}/{self.__iterableLength}"
-            elapsed = time.time() - self.__start
-            remaining = elapsed
-            elapsed = f"Elapsed: {displayTime(elapsed)}"
-            remaining = (self.__iterableLength - self.__index) * (remaining / (self.__index + 1)) + 0.65
-            remaining = f"Remaining: {displayTime(remaining)}"
+            self.percentage = str(int((self.__index + 1) / self.__iterableLength * 100)) + "%"
+            self.ratio = f"{self.__index + 1}/{self.__iterableLength}"
+            self.elapsed = time.time() - self.__start
+            self.remaining = (self.__iterableLength - self.__index) * (self.elapsed/ (self.__index + 1)) + 0.65
+            if self.__index > 0:
+                self.lastIterationSpeeds.append(time.time() - self.__lastIteration)
+            if len(self.lastIterationSpeeds) > 15:
+                self.lastIterationSpeeds = self.lastIterationSpeeds[-15:]
+            if len(self.lastIterationSpeeds) > 0:
+                self.iterationSpeed = round(sum(self.lastIterationSpeeds) / len(self.lastIterationSpeeds), 3)
+            else:
+                self.iterationSpeed = 0
 
-            infoItems = [
-                percentage,
-                ratio,
-                elapsed,
-                remaining
-            ]
+            barWidth = terminalWidth - 2
 
-            barWidth = terminalWidth - len(percentage) - len(ratio) - len(elapsed) - len(remaining) - 3 * len(infoItems)
+            suffix = ""
+            for i, widget in enumerate(self.__progressBar.widgets):
+                strWidget = str(widget)
+                suffix += strWidget
+                if i != len(self.__progressBar.widgets) - 1:
+                    suffix += " | "
+            if suffix != "":
+                barWidth -= len(suffix) + 1
 
             fullBlocks = (self.__index + 1) /  self.__iterableLength
             decimal = fullBlocks * barWidth - int(fullBlocks * barWidth)
@@ -58,13 +73,24 @@ class ProgressIterator:
                 blocks += "░░▒▓"[min(round(decimal * len("░░▒▓")), len("░░▒▓") - 1)]
             blocks += " " * (barWidth - len(blocks))
             out += blocks
-            out += "| "
+            out += "|"
+            if suffix != "":
+                out += " "
 
-            # 76% | 201/253 | Elapsed: 00:23:01 | Remaining: 00:06:34
-            out += " | ".join(infoItems)
+            out += suffix
+
+        self.__lastIteration = time.time()
 
         if self.__index < self.__iterableLength:
             if runCycle:
+                if self.color != None:
+                    coloredOut = ""
+                    for char in out:
+                        if char.isdigit():
+                            coloredOut += colored(char, self.color)
+                        else:
+                            coloredOut += char
+                    out = coloredOut
                 print(out)
             item = self.__progressBar.iterable[self.__index]
             self.__index += 1
@@ -72,16 +98,13 @@ class ProgressIterator:
         raise StopIteration
 
 class ProgressBar:
-    def __init__(self, iterable: Iterable, updateInterval: int = 1) -> None:
-        """Creates an iterable progress bar, when iterated over it will update and print the progress bar.
-
-        Args:
-            iterable (Iterable): The object to iterate over.
-            updateInterval (int, optional): The interval inbetween updates, choosing to update the progress bar less often might be faster. Defaults to 1.
-        """
-        
-        self.iterable = iterable
+    def __init__(self, widgets: List[widgets.Widget] = [widgets.Percentage, widgets.IterationSpeed, widgets.Counter, widgets.ElapsedTime, widgets.RemainingTime], updateInterval: int = 1, color: Optional[str] = "red") -> None:
+        self.widgets = []
         self.updateInterval = updateInterval
+        self.color = color
+        for widget in widgets:
+            self.widgets.append(widget(self))
     
-    def __iter__(self) -> ProgressIterator:
+    def __call__(self, iterable: Iterable) -> ProgressIterator:
+        self.iterable = iterable
         return ProgressIterator(self)

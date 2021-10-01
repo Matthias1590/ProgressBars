@@ -1,4 +1,4 @@
-from progressbars import ProgressBar
+from progressbars import ProgressBar, widgets
 
 def isPrime(n: int) -> bool:
     "A very slow algorithm to calculate if a given number is prime."
@@ -11,8 +11,17 @@ def isPrime(n: int) -> bool:
 # Create an empty list to store the primes we find
 primes = []
 
-# Loop through all numbers from 0-100_000
-for i in ProgressBar(range(100_000), 30): # Update the progress bar every 30 iterations
+# Create a red progress bar, update it every 10 iterations and use the percentage, iteration speed, counter, elapsed time and remaining time widgets
+bar = ProgressBar([
+    widgets.Percentage,
+    widgets.IterationSpeed,
+    widgets.Counter,
+    widgets.ElapsedTime,
+    widgets.RemainingTime
+], 10, "red")
+
+# Loop through all numbers from 0-30_000
+for i in bar(range(30_000)):
     if isPrime(i): # If the current number is prime, append it to the primes list
         primes.append(i)
 
