@@ -23,7 +23,7 @@ def isPrime(n: int) -> bool:
 # Create an empty list to store the primes we find
 primes = []
 
-# Create a red progress bar, update it every 10 iterations and use the percentage, iteration speed, counter, elapsed time and remaining time widgets
+# Create a red progress bar, update it every 10 iterations and use the default widgets
 bar = ProgressBar([
     widgets.Percentage,
     widgets.IterationSpeed,
