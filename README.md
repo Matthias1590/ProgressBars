@@ -1,8 +1,8 @@
 # ProgressBars
-A python library to display progress of loops to the user.
+A python package to display progress of loops to the user.
 
 # Installation
-This library can be installed using pip.
+This package can be installed using pip.
 ```
 pip install progressbars
 ```
