@@ -33,4 +33,4 @@ class RemainingTime(Widget):
 
 class IterationSpeed(Widget):
     def __str__(self) -> str:
-        return f"{str(self.progressBar.iterationSpeed)[::-1].zfill(5)[::-1]} s/it"
+        return f"{str(1 / self.progressBar.iterationSpeed)[::-1].zfill(5)[::-1]} it/s"
