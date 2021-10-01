@@ -1,9 +1,10 @@
 from __future__ import annotations
-from datetime import datetime, timezone
-from typing import *
 
 import os
 import time
+from datetime import datetime, timezone
+from typing import *
+
 
 def displayTime(time: float) -> str:
     time = datetime.fromtimestamp(time, timezone.utc)
