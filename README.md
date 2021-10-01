@@ -1,6 +1,8 @@
 # ProgressBars
 A python package to display progress of loops to the user.
 
+![](example.gif)
+
 # Installation
 This package can be installed using pip.
 ```
@@ -40,6 +42,3 @@ for i in bar(range(30_000)):
 # Print how many primes we found
 print("\nFound", len(primes), "primes!")
 ```
-
-# Example
-![](example.gif)
