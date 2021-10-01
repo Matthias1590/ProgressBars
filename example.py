@@ -13,8 +13,8 @@ primes = []
 
 # Loop through all numbers from 0-100_000
 for i in ProgressBar(range(100_000), 30): # Update the progress bar every 30 iterations
-    if isPrime(i): # If the current number is prime
-        primes.append(i) # Store it in the primes list
+    if isPrime(i): # If the current number is prime, append it to the primes list
+        primes.append(i)
 
-# Print how many primes we found to the console
+# Print how many primes we found
 print("\nFound", len(primes), "primes!")
