@@ -15,10 +15,13 @@ class ProgressIterator:
         self.__progressBar = progressBar
         self.__iterableLength = len(self.__progressBar.iterable)
         self.__updateInterval = progressBar.updateInterval
+        if self.__updateInterval == None:
+            self.__updateInterval = max(1, round(self.__iterableLength / 1000))
         self.__start = time.time()
         self.__lastIteration = self.__start
         self.lastIterationSpeeds = []
         self.color = self.__progressBar.color
+        self.averageSampleSize = round(self.__iterableLength / 100)
 
         for widget in progressBar.widgets:
             widget.progressBar = self
@@ -41,10 +44,11 @@ class ProgressIterator:
             self.remaining = (self.__iterableLength - self.__index) * (self.elapsed/ (self.__index + 1)) + 0.65
             if self.__index > 0:
                 self.lastIterationSpeeds.append(time.time() - self.__lastIteration)
-            if len(self.lastIterationSpeeds) > 15:
-                self.lastIterationSpeeds = self.lastIterationSpeeds[-15:]
-            if len(self.lastIterationSpeeds) > 0:
-                self.iterationSpeed = round(sum(self.lastIterationSpeeds) / len(self.lastIterationSpeeds), 3)
+            iterationSpeedsLength = len(self.lastIterationSpeeds)
+            if iterationSpeedsLength > 0:
+                if iterationSpeedsLength > self.averageSampleSize:
+                    self.lastIterationSpeeds = self.lastIterationSpeeds[-self.averageSampleSize:]
+                self.iterationSpeed = sum(self.lastIterationSpeeds) / iterationSpeedsLength
             else:
                 self.iterationSpeed = 0
 
@@ -98,7 +102,7 @@ class ProgressIterator:
         raise StopIteration
 
 class ProgressBar:
-    def __init__(self, widgets: List[widgets.Widget] = [widgets.Percentage, widgets.IterationSpeed, widgets.Counter, widgets.ElapsedTime, widgets.RemainingTime], updateInterval: int = 1, color: Optional[str] = "red") -> None:
+    def __init__(self, widgets: List[widgets.Widget] = [widgets.Percentage, widgets.IterationSpeed, widgets.Counter, widgets.ElapsedTime, widgets.RemainingTime], updateInterval: Optional[int] = None, color: Optional[str] = None) -> None:
         self.widgets = []
         self.updateInterval = updateInterval
         self.color = color

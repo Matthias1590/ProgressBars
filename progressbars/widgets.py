@@ -37,4 +37,4 @@ class IterationSpeed(Widget):
             iterationSpeed = 1 / self.progressBar.iterationSpeed
         else:
             iterationSpeed = 0
-        return f"{str(iterationSpeed)[::-1].zfill(5)[::-1]} it/s"
+        return f"{str(round(iterationSpeed, 2))[::-1].zfill(6)[::-1]} it/s"
