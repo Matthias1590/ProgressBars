@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name="progressbars",
-    version="1.0.0",
+    version="1.1.2",
     description="A python library to display progress of loops to the user",
     long_description=readme(),
     long_description_content_type="text/markdown",
